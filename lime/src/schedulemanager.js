@@ -299,7 +299,7 @@ lime.scheduleManager.disable_ = function() {
  * @private
  */
 lime.scheduleManager.animationFrameHandler_ = function(){
-    time = this.now()
+    var time = this.now()
     var delta = time - this.lastRunTime_;
     if (delta < 0) { // i0S6 reports relative to the device restart time. So first is negative.
         delta = 1;

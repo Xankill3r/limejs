@@ -542,8 +542,8 @@ lime.Director.prototype.invalidateSize_ = function() {
  */
 lime.Director.prototype.makeMobileWebAppCapable = function() {
     var visited = false;
-    if (goog.isDef(localStorage)) {
-        visited = localStorage.getItem('_lime_visited');
+    if (goog.isDef(window.localStorage)) {
+        visited = window.localStorage.getItem('_lime_visited');
     }
 
     var addMeta = function(meta_name, meta_val) {
@@ -568,8 +568,8 @@ lime.Director.prototype.makeMobileWebAppCapable = function() {
             this.domElement.parentNode==document.body) {
             alert('Please install this page as a web app by ' +
                   'clicking Share + Add to home screen.');
-            if (goog.isDef(localStorage)) {
-                localStorage.setItem('_lime_visited', true);
+            if (goog.isDef(window.localStorage)) {
+                window.localStorage.setItem('_lime_visited', true);
             }
         }
     }
