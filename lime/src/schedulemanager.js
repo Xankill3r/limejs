@@ -8,14 +8,13 @@ goog.require('lime');
 /**
  * Unified timer provider class
  * Don't create instances of this class. Used the shared instance.
- * @this {lime.scheduleManager}
  * @constructor
  */
-lime.scheduleManager = new (function() {
+lime.ScheduleManager = function() {
 
     /**
      * Array of registered functions
-     * @type {Array.<lime.scheduleManager.Task>}
+     * @type {Array.<lime.ScheduleManager.Task>}
      * @private
      */
     this.taskStack_ = [];
@@ -56,9 +55,18 @@ lime.scheduleManager = new (function() {
      */
     this.lastRunTime_ = 0;
 
-})();
+    var performance = goog.global['performance']
+    var now = performance && (performance['now'] || performance['webkitNow'])
 
-lime.scheduleManager.Callback = function (f, ctx, delta) {
+    this.now = function() {
+        return now ? now.call(performance) : goog.now();
+    };
+};
+
+/**
+ * @constructor
+ */
+lime.ScheduleManager.Callback = function (f, ctx, delta) {
     this.f = f;
     this.ctx = ctx;
     this.paused = false;
@@ -71,7 +79,7 @@ lime.scheduleManager.Callback = function (f, ctx, delta) {
  * @param {number=} opt_limit Number of calls.
  * @constructor
  */
-lime.scheduleManager.Task = function(maxdelta, opt_limit) {
+lime.ScheduleManager.Task = function(maxdelta, opt_limit) {
     this.maxdelta = maxdelta;
     this.limit = goog.isDef(opt_limit) ? opt_limit : -1;
     this.functionStack_ = [];
@@ -82,7 +90,7 @@ lime.scheduleManager.Task = function(maxdelta, opt_limit) {
  * @param {number} dt Delta time since last iteration.
  * @private
  */
-lime.scheduleManager.Task.prototype.step_ = function(dt) {
+lime.ScheduleManager.Task.prototype.step_ = function(dt) {
     if (!this.functionStack_.length) return;
 
     var f;
@@ -111,7 +119,7 @@ lime.scheduleManager.Task.prototype.step_ = function(dt) {
 
 };
 
-lime.scheduleManager.taskStack_.push(new lime.scheduleManager.Task(0));
+lime.scheduleManager.taskStack_.push(new lime.ScheduleManager.Task(0));
 
 (function() {
     var vendors = ['webkit', 'moz'];
@@ -128,14 +136,13 @@ lime.scheduleManager.taskStack_.push(new lime.scheduleManager.Task(0));
  * Exposed here so it could be disabled if needed.
  * @type {boolean}
  */
-lime.scheduleManager.USE_ANIMATION_FRAME = !!goog.global.requestAnimationFrame;
+lime.ScheduleManager.USE_ANIMATION_FRAME = !!goog.global.requestAnimationFrame;
 
 /**
  * Returns maximum fire rate in ms. If you need FPS then use 1000/x
- * @this {lime.scheduleManager}
  * @return {number} Display rate.
  */
-lime.scheduleManager.getDisplayRate = function() {
+lime.ScheduleManager.prototype.getDisplayRate = function() {
     //todo: bad name
     return this.displayRate_;
 };
@@ -145,10 +152,9 @@ lime.scheduleManager.getDisplayRate = function() {
  * If you have FPS then send 1000/x
  * Note that if animation frame methods are used browser chooses
  * max display rate and this value has no effect.
- * @this {lime.scheduleManager}
  * @param {number} value New display rate.
  */
-lime.scheduleManager.setDisplayRate = function(value) {
+lime.ScheduleManager.prototype.setDisplayRate = function(value) {
      this.displayRate_ = value;
      if (this.active_) {
          lime.scheduleManager.disable_();
@@ -158,24 +164,23 @@ lime.scheduleManager.setDisplayRate = function(value) {
 /**
  * Generate unique id for scheduled function
  */
-lime.scheduleManager.nextFunctionId__=(function() {
-	var curId = 0;
-	//next id
-	return function(){return curId++};
+lime.ScheduleManager.prototype.nextFunctionId__=(function() {
+    var curId = 0;
+    //next id
+    return function(){return curId++};
 })()
+
 /**
  * Schedule a function. Passed function will be called on every frame
  * with delta time from last run time
- * @this {lime.scheduleManager}
  * @param {function(number)} f Function to be called.
  * @param {Object} context The context used when calling function.
- * @param {lime.scheduleManager.Task=} opt_task Task object.
+ * @param {lime.ScheduleManager.Task=} opt_task Previous task object
  */
-
-lime.scheduleManager.schedule = function(f, context, opt_task) {
+lime.ScheduleManager.prototype.schedule = function(f, context, opt_task) {
     var task = goog.isDef(opt_task) ? opt_task : this.taskStack_[0];
-	var cb = new this.Callback(f, context, task.maxdelta);
-	cb.id = this.nextFunctionId__();
+    var cb = new lime.ScheduleManager.Callback(f, context, task.maxdelta);
+    cb.id = this.nextFunctionId__();
     goog.array.insert(task.functionStack_, cb);
     goog.array.insert(this.taskStack_, task);
     if (!this.active_) {
@@ -185,10 +190,10 @@ lime.scheduleManager.schedule = function(f, context, opt_task) {
 
 /**
  * Unschedule a function. For functions that have be previously scheduled
- * @this {lime.scheduleManager}
- * @param {Number} functionId Id generated when scheduling.
+ * @param {Number|function(number)} functionId Id generated when scheduling.
+ * @param {Object=} context The context used when calling function.
  */
-lime.scheduleManager.unschedule = function(functionId) {
+lime.ScheduleManager.prototype.unschedule = function(functionId, context) {
     var j = this.taskStack_.length;
     //Just for compatible with the old API lime.scheduleManager.unschedule(function,context)
     var isEqualFun = goog.isFunction(functionId)?(function(context) {
@@ -223,10 +228,9 @@ lime.scheduleManager.unschedule = function(functionId) {
 
 /**
  * Start the internal timer functions
- * @this {lime.scheduleManager}
  * @private
  */
-lime.scheduleManager.activate_ = function() {
+lime.ScheduleManager.prototype.activate_ = function() {
     if (this.active_) return;
 
     // There are serious freezes on startup so its better to wait for first event loop.
@@ -238,7 +242,7 @@ lime.scheduleManager.activate_ = function() {
     this.active_ = true;
 };
 
-lime.scheduleManager.activate__ = function() {
+lime.ScheduleManager.prototype.activate__ = function() {
     this.lastRunTime_ = this.now();
 
     if(lime.scheduleManager.USE_ANIMATION_FRAME && goog.global.requestAnimationFrame) {
@@ -259,23 +263,11 @@ lime.scheduleManager.activate__ = function() {
     }
 };
 
-(function() {
-
-var performance = goog.global['performance']
-var now = performance && (performance['now'] || performance['webkitNow'])
-
-lime.scheduleManager.now = function() {
-    return now ? now.call(performance) : goog.now();
-};
-
-})();
-
 /**
  * Stop interval timer functions
- * @this {lime.scheduleManager}
  * @private
  */
-lime.scheduleManager.disable_ = function() {
+lime.ScheduleManager.prototype.disable_ = function() {
     if (!this.active_) return;
 
     if(lime.scheduleManager.USE_ANIMATION_FRAME && goog.global.requestAnimationFrame) {
@@ -295,10 +287,9 @@ lime.scheduleManager.disable_ = function() {
 
 /**
  * Webkit implemtation of requestAnimationFrame handler.
- * @this {lime.scheduleManager}
  * @private
  */
-lime.scheduleManager.animationFrameHandler_ = function(){
+lime.ScheduleManager.prototype.animationFrameHandler_ = function(){
     var time = this.now()
     var delta = time - this.lastRunTime_;
     if (delta < 0) { // i0S6 reports relative to the device restart time. So first is negative.
@@ -311,10 +302,9 @@ lime.scheduleManager.animationFrameHandler_ = function(){
 
 /**
  * Mozilla < 11 implementation of requestAnimationFrame handler.
- * @this {lime.scheduleManager}
  * @private
  */
-lime.scheduleManager.beforePaintHandler_ = function(event){
+lime.ScheduleManager.prototype.beforePaintHandler_ = function(event){
     var delta = event.timeStamp - this.lastRunTime_;
     lime.scheduleManager.dispatch_(delta);
     this.lastRunTime_ = event.timeStamp;
@@ -323,10 +313,9 @@ lime.scheduleManager.beforePaintHandler_ = function(event){
 
 /**
  * Timer events step function that delegates to other objects waiting
- * @this {lime.scheduleManager}
  * @private
  */
-lime.scheduleManager.stepTimer_ = function() {
+lime.ScheduleManager.prototype.stepTimer_ = function() {
     var t;
     var curTime = this.now();
     var delta = curTime - this.lastRunTime_;
@@ -337,11 +326,10 @@ lime.scheduleManager.stepTimer_ = function() {
 
 /**
  * Call all scheduled tasks
- * @this {lime.scheduleManager}
  * @param {number} delta Milliseconds since last run.
  * @private
  */
-lime.scheduleManager.dispatch_ = function(delta){
+lime.ScheduleManager.prototype.dispatch_ = function(delta){
 
 
     var stack = this.taskStack_.slice()
@@ -364,11 +352,10 @@ lime.scheduleManager.dispatch_ = function(delta){
 
 /**
  * Change director's activity. Used for pausing updates when director is paused
- * @this {lime.scheduleManager}
  * @param {lime.Director} director Director.
  * @param {boolean} value Active or inactive?
  */
-lime.scheduleManager.changeDirectorActivity = function(director, value) {
+lime.ScheduleManager.prototype.changeDirectorActivity = function(director, value) {
     var t, context, f, d, i,
     j = this.taskStack_.length;
     while (--j >= 0) {
@@ -394,7 +381,7 @@ lime.scheduleManager.changeDirectorActivity = function(director, value) {
  * @param {Object} context Context used when calling object.
  * @param {number} delay Delay before calling.
  */
-lime.scheduleManager.callAfter = function(f, context, delay) {
+lime.ScheduleManager.prototype.callAfter = function(f, context, delay) {
     lime.scheduleManager.scheduleWithDelay(f, context, delay, 1);
 };
 
@@ -404,10 +391,12 @@ lime.scheduleManager.callAfter = function(f, context, delay) {
  * @param {Object} context Context used when calling object.
  * @param {number} delay Delay before calling.
  * @param {number=} opt_limit Number of times to call.
- * @this {lime.scheduleManager}
  */
-lime.scheduleManager.scheduleWithDelay = function(f, context,
+lime.ScheduleManager.prototype.scheduleWithDelay = function(f, context,
         delay, opt_limit) {
-    var task = new lime.scheduleManager.Task(delay, opt_limit);
+    var task = new lime.ScheduleManager.Task(delay, opt_limit);
     lime.scheduleManager.schedule(f, context, task);
 };
+
+/**@type {lime.ScheduleManager}*/
+lime.scheduleManager = new lime.ScheduleManager();
