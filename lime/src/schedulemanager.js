@@ -119,8 +119,6 @@ lime.ScheduleManager.Task.prototype.step_ = function(dt) {
 
 };
 
-lime.scheduleManager.taskStack_.push(new lime.ScheduleManager.Task(0));
-
 (function() {
     var vendors = ['webkit', 'moz'];
     for(var x = 0; x < vendors.length && !goog.global.requestAnimationFrame; ++x) {
@@ -400,3 +398,5 @@ lime.ScheduleManager.prototype.scheduleWithDelay = function(f, context,
 
 /**@type {lime.ScheduleManager}*/
 lime.scheduleManager = new lime.ScheduleManager();
+
+lime.scheduleManager.taskStack_.push(new lime.ScheduleManager.Task(0));
