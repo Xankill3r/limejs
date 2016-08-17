@@ -122,7 +122,7 @@ lime.Label.prototype.setText = function(txt) {
 
 /**
  * Set label text
- * @param {string} txt New style contents.
+ * @param {string} style New style contents.
  * @return {lime.Label} object itself.
  */
 lime.Label.prototype.setStyle = function(style) {

@@ -28,7 +28,7 @@ lime.style.tryProperty = function(name) {
 /**
  * Get the name of actual CSS property from general(unprefixed) name
  * @param {string} name Unprefixed name.
- * @return {string} Actual valid property name.
+ * @return {string|undefined} Actual valid property name.
  */
 lime.style.getCSSproperty = function(name) {
     var name_lower = name.charAt(0).toLowerCase() + name.substr(1),
@@ -44,8 +44,8 @@ lime.style.getCSSproperty = function(name) {
 /**
  * Set border radius of a DOM element
  * @param {Element} el Element to change.
- * @param {Array.<number>} values Radius values.
- * @param {Array.<number>=} opt_vertical Vertical radius values.
+ * @param {Array.<number>|number} values Radius values.
+ * @param {Array.<number>|number=} opt_vertical Vertical radius values.
  * @param {boolean=} opt_isPerc If values are given in percentages.
  */
 lime.style.setBorderRadius = (function() {
@@ -82,7 +82,7 @@ lime.style.Transform = function(opt_precision) {
 
 /**
  * Sets 3D enabling flag for css hardware acceleration (on by default)
- * @param {Boolean} value
+ * @param {boolean} value
  * @return {lime.style.Transform} object itself.
  */
 lime.style.Transform.prototype.set3DAllowed = function(value) {

@@ -1,5 +1,6 @@
 goog.provide('lime.events.EventDispatcher');
 
+goog.require('goog.events.BrowserEvent');
 goog.require('lime.events.Event');
 
 /**
@@ -90,7 +91,7 @@ lime.events.EventDispatcher.prototype.swallow = function(e, type, handler) {
 
 /**
  * Handle DOM event
- * @param {Event} e Event.
+ * @param {goog.events.BrowserEvent} e Event.
  */
 lime.events.EventDispatcher.prototype.handleEvent = function(e) {
 
