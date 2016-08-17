@@ -288,6 +288,9 @@ def build(name,options):
     if options.advanced:
         call+=" -f --compilation_level=ADVANCED_OPTIMIZATIONS"
         
+    if options.verbose:
+        call+=" -f --warning_level=VERBOSE"
+        
     if options.debug:
         call+=" -f --debug -f --formatting=PRETTY_PRINT"
         
@@ -388,6 +391,9 @@ Commands:
     
     parser.add_option("-a", "--advanced", dest="advanced", action="store_true",
                       help="Build uses ADVANCED_OPTIMIZATIONS mode (encouraged)")
+                      
+    parser.add_option("-v", "--verbose", dest="verbose", action="store_true",
+                      help="Build uses Verbose mode")
                       
     parser.add_option("-g", "--debug", dest="debug", action="store_true",
                       help="Closure Compiler: longer names for symbols for debugging of the advanced optimizations.")
