@@ -635,7 +635,7 @@ lime.Node.prototype.createDomElement = function() {
         this.domElement = this.rootElement =
             this.containerElement = goog.dom.createDom(newTagName);
         if (this.domClassName)
-            goog.dom.classes.add(this.domElement, this.domClassName);
+            goog.dom.classlist.add(this.domElement, this.domClassName);
         this.dirty_ |= ~0;
     };
 

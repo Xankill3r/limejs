@@ -5,7 +5,7 @@ goog.require('lime.CoverNode');
 goog.require('goog.array');
 goog.require('goog.dom');
 goog.require('goog.dom.ViewportSizeMonitor');
-goog.require('goog.dom.classes');
+goog.require('goog.dom.classlist');
 goog.require('goog.events');
 goog.require('goog.math.Box');
 goog.require('goog.math.Coordinate');
@@ -62,12 +62,12 @@ lime.Director = function(parentElement, opt_width, opt_height) {
     if (goog.userAgent.WEBKIT && goog.userAgent.MOBILE) {
     //todo: Not pretty solution. Cover layers may not be needed at all.
     this.coverElementBelow = document.createElement('div');
-    goog.dom.classes.add(this.coverElementBelow,
+    goog.dom.classlist.add(this.coverElementBelow,
         goog.getCssName('lime-cover-below'));
     goog.dom.insertSiblingBefore(this.coverElementBelow, this.domElement);
 
     this.coverElementAbove = document.createElement('div');
-    goog.dom.classes.add(this.coverElementAbove,
+    goog.dom.classlist.add(this.coverElementAbove,
         goog.getCssName('lime-cover-above'));
     goog.dom.insertSiblingAfter(this.coverElementAbove, this.domElement);
     }
@@ -222,7 +222,7 @@ lime.Director.prototype.setDisplayFPS = function(value) {
         this.accumDt_ = 0;
 
         this.fpsElement_ = goog.dom.createDom('div');
-        goog.dom.classes.add(this.fpsElement_, goog.getCssName('lime-fps'));
+        goog.dom.classlist.add(this.fpsElement_, goog.getCssName('lime-fps'));
         this.domElement.parentNode.appendChild(this.fpsElement_);
     }
 
